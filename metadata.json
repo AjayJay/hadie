@@ -1,0 +1,5 @@
+{
+  "name": "Copy of Handie",
+  "description": "A modern, mobile-first web application for booking home and personal care services. Features a clean UI, role-based authentication for customers and experts, and AI-powered booking summaries via the Gemini API.",
+  "requestFramePermissions": []
+}
