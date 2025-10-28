@@ -21,6 +21,7 @@ export interface LoginRequest {
 }
 
 export interface RegisterRequest {
+  name: string;
   email: string;
   password: string;
   phone: string;
@@ -199,7 +200,13 @@ class ApiClient {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'API request failed');
+        // Create a more detailed error object
+        const error = new Error(data.message || 'API request failed') as any;
+        error.status = response.status;
+        error.statusText = response.statusText;
+        error.data = data;
+        error.errorCode = data.error;
+        throw error;
       }
 
       return data;

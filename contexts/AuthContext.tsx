@@ -5,8 +5,8 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
-  register: (userData: { email: string; password: string; phone: string; role: 'customer' | 'expert' }) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  register: (userData: { name: string; email: string; password: string; phone: string; role: 'customer' | 'expert' }) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -49,7 +49,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
       setIsLoading(true);
       const response = await apiClient.login({ email, password });
@@ -63,23 +63,27 @@ export function AuthProvider({ children }: AuthProviderProps) {
         
         // Set user
         setUser(userData);
-        return true;
+        return { success: true };
       }
-      return false;
-    } catch (error) {
+      return { success: false, error: response.message || 'Login failed' };
+    } catch (error: any) {
       console.error('Login failed:', error);
-      return false;
+      return { 
+        success: false, 
+        error: error.data?.message || error.message || 'Login failed. Please try again.' 
+      };
     } finally {
       setIsLoading(false);
     }
   };
 
   const register = async (userData: { 
+    name: string;
     email: string; 
     password: string; 
     phone: string; 
     role: 'customer' | 'expert' 
-  }): Promise<boolean> => {
+  }): Promise<{ success: boolean; error?: string }> => {
     try {
       setIsLoading(true);
       const response = await apiClient.register(userData);
@@ -93,12 +97,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
         
         // Set user
         setUser(newUser);
-        return true;
+        return { success: true };
       }
-      return false;
-    } catch (error) {
+      return { success: false, error: response.message || 'Registration failed' };
+    } catch (error: any) {
       console.error('Registration failed:', error);
-      return false;
+      return { 
+        success: false, 
+        error: error.data?.message || error.message || 'Registration failed. Please try again.' 
+      };
     } finally {
       setIsLoading(false);
     }

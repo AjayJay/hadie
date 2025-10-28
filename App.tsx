@@ -1,6 +1,6 @@
 import React from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import AuthScreen from './components/AuthScreen';
+import LandingPage from './components/LandingPage';
 import CustomerDashboard from './components/CustomerDashboard';
 import ExpertDashboard from './components/ExpertDashboard';
 import { OnboardingFlow } from './components/onboarding/OnboardingFlow';
@@ -20,9 +20,9 @@ const AppContent: React.FC = () => {
     );
   }
 
-  // Show auth screen if not authenticated
+  // Show landing page if not authenticated
   if (!isAuthenticated || !user) {
-    return <AuthScreen />;
+    return <LandingPage />;
   }
 
   // Show onboarding if user hasn't completed onboarding

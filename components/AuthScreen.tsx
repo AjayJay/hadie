@@ -13,30 +13,76 @@ const AuthScreen: React.FC = () => {
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
+
+  // Client-side validation
+  const validatePassword = (password: string): string[] => {
+    const errors: string[] = [];
+    if (password.length < 8) {
+      errors.push('Password must be at least 8 characters long');
+    }
+    if (!/[A-Z]/.test(password)) {
+      errors.push('Password must contain at least one uppercase letter');
+    }
+    if (!/[a-z]/.test(password)) {
+      errors.push('Password must contain at least one lowercase letter');
+    }
+    if (!/\d/.test(password)) {
+      errors.push('Password must contain at least one number');
+    }
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+      errors.push('Password must contain at least one special character');
+    }
+    return errors;
+  };
+
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
+    setPasswordErrors([]);
 
     try {
       if (authMode === 'login') {
-        const success = await login(email, password);
-        if (!success) {
-          setError('Invalid email or password');
-        }
-      } else {
-        if (!name || !phone) {
-          setError('All fields are required');
+        if (!email || !password) {
+          setError('Email and password are required');
           return;
         }
         
-        const success = await register({ email, password, phone, role });
-        if (!success) {
-          setError('Registration failed. Please try again.');
+        const result = await login(email, password);
+        if (!result.success) {
+          setError(result.error || 'Invalid email or password');
+        }
+      } else {
+        // Registration validation
+        if (!name || !email || !password || !phone) {
+          setError('All fields are required');
+          return;
+        }
+
+        if (!validateEmail(email)) {
+          setError('Please enter a valid email address');
+          return;
+        }
+
+        const passwordValidationErrors = validatePassword(password);
+        if (passwordValidationErrors.length > 0) {
+          setPasswordErrors(passwordValidationErrors);
+          setError('Password does not meet requirements');
+          return;
+        }
+        
+        const result = await register({ name, email, password, phone, role });
+        if (!result.success) {
+          setError(result.error || 'Registration failed. Please try again.');
         }
       }
-    } catch (error) {
-      setError('An unexpected error occurred. Please try again.');
+    } catch (error: any) {
+      setError(error.message || 'An unexpected error occurred. Please try again.');
     }
   };
 
@@ -122,15 +168,40 @@ const AuthScreen: React.FC = () => {
                           type="password" 
                           id="password" 
                           value={password} 
-                          onChange={e => setPassword(e.target.value)} 
+                          onChange={e => {
+                            setPassword(e.target.value);
+                            if (authMode === 'register') {
+                              setPasswordErrors(validatePassword(e.target.value));
+                            }
+                          }} 
                           className="shadow-sm appearance-none border bg-white rounded w-full py-2 px-3 text-slate-700 mb-3 leading-tight focus:outline-none focus:ring-2 focus:ring-sky-500" 
                           required 
                         />
+                        {authMode === 'register' && passwordErrors.length > 0 && (
+                          <div className="mb-3">
+                            <div className="text-sm text-red-600">
+                              <ul className="list-disc list-inside space-y-1">
+                                {passwordErrors.map((error, index) => (
+                                  <li key={index}>{error}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+                        )}
                     </div>
                     
                     {error && (
-                      <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-                        {error}
+                      <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-800 rounded-lg">
+                        <div className="flex items-start">
+                          <div className="flex-shrink-0">
+                            <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <div className="ml-3">
+                            <p className="text-sm font-medium">{error}</p>
+                          </div>
+                        </div>
                       </div>
                     )}
                     

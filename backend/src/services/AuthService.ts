@@ -67,10 +67,13 @@ export class AuthService {
     return emailRegex.test(email);
   }
 
-  // Validate phone format (Indian format)
+  // Validate phone format
   static validatePhone(phone: string): boolean {
-    const phoneRegex = /^(\+91|91)?[6-9]\d{9}$/;
-    return phoneRegex.test(phone.replace(/\s/g, ''));
+    // Remove all non-digit characters except + at the beginning
+    const cleanedPhone = phone.replace(/[^\d+]/g, '');
+    // Check if it's a valid phone number (10-15 digits, optionally starting with +)
+    const phoneRegex = /^(\+)?\d{10,15}$/;
+    return phoneRegex.test(cleanedPhone);
   }
 
   // Validate password strength

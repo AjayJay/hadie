@@ -10,7 +10,7 @@ const registerSchema = Joi.object({
   name: Joi.string().min(2).max(100).required(),
   email: Joi.string().email().required(),
   password: Joi.string().min(8).required(),
-  phone: Joi.string().pattern(/^(\+91|91)?[6-9]\d{9}$/).required(),
+  phone: Joi.string().min(10).max(15).required(),
   role: Joi.string().valid('customer', 'expert').required()
 });
 
